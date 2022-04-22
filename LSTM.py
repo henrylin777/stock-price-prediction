@@ -29,12 +29,16 @@ class Model (object):
         self.model = LSTM(input_feat_dim, hidden_feat_dim, num_layers)
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.01)
         self.loss_fnc = nn.CrossEntropyLoss()
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print("Using device: ", self.device)
+        if torch.cuda.is_available():
+            self.model.cuda()
 
 
     def train(self, x_train, y_train):
         self.model.train()
-        x_train = tensorized(x_train).to(torch.float32) # [B, len, emd_size]
-        y_train = tensorized(y_train).to(torch.float32)
+        x_train = tensorized(x_train).to(device=self.device, dtype=torch.float32) # [B, len, emd_size]
+        y_train = tensorized(y_train).to(device=self.device, dtype=torch.float32)
         # print(x_train.size())
         for epoch in range(1, 6):
             epoch_loss = 0
