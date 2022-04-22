@@ -64,7 +64,7 @@ class Model (object):
 
     def predict(self, x_test):
         self.model.eval()
-        x_test = tensorized(x_test).to(torch.float32)
+        x_test = tensorized(x_test).to(device=self.device, dtype=torch.float32)
 
         # print("x_test.shape: ", x_test.shape)
         output = self.model(x_test)
