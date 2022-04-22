@@ -8,7 +8,7 @@ def tensorized(data):
     
 def post_process(input_x):
     Batch, seq, hidden = input_x.size()
-    indices = torch.tensor([seq-1])
+    indices = torch.tensor([seq-1]).to(device=self.device)
     temp = torch.index_select(input_x, 1, indices)
     # print("temp.size(): ", temp.size())
     # print(input_x[240,49,:])
