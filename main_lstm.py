@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from LSTM import LSTM
+from LSTM import Model
 from sklearn.preprocessing import StandardScaler
 
 
@@ -19,14 +19,12 @@ def load_g_truth(file_path):
         else:
             result.append([0, 0, 1])
 
-    
-
     return result
 
 
 def load_data(file_name):
-    df = pd.read_csv(file_name)
-    df.columns = ['open', 'high', 'low', 'close']
+    df = pd.read_csv(file_name, names=('open', 'high', 'low', 'close'))
+    # df.columns = ['open', 'high', 'low', 'close'] # DO NOT use this.
 
     return df
 
@@ -37,16 +35,13 @@ def data_trans(df) -> list:
     Transform dataframe into 2D array for StandardScaler()
     '''
     result = []
-    # col = df.iloc[:,3]
-    # for value in col:
-        # result.append([value])
     for index, row in df.iterrows():
         result.append([row['open'], row["high"], row["low"], row["close"]])
 
     return result
 
 ## Split the time-series data into training seq X and output value Y
-def extract_seqX_outcomeY(data, window_size=50, offset=50):
+def extract_seqX_outcomeY(x_data, y_data, window_size=50, offset=50):
     """
     Split time-series into training sequence X and outcome value Y
     Args:
@@ -55,40 +50,47 @@ def extract_seqX_outcomeY(data, window_size=50, offset=50):
         offset : position to start the split
     """
     X, y = [], []
-
-    for i in range(offset, len(data)):
-        X.append( data[i-window_size : i] )
-        y.append(data[i])
+    # print(len(y_data))
+    # print(len(x_data))
+    assert len(x_data) == len(y_data)
+    
+    for i in range(offset, len(x_data)):
+        X.append( x_data[i-window_size : i] )
+        y.append(y_data[i])
 
     return np.array(X), np.array(y)
 
 
+
+
+def split_train_test_set(x_data, y_data, split):
+    # x_train, y_train, x_test, y_test = [], [], [], []
+    split = len(x_data) - split
+    x_train = x_data[0:split]
+    y_train = y_data[0:split]
+    x_test = x_data[split:]
+    y_test = y_data[split:]
+
+    return x_train, y_train, x_test, y_test
+
+
 def main():
     
-    train_data = load_data("training.csv")
-    train_data = data_trans(train_data)
+    raw_train_data = load_data("training.csv")
+    split = len(raw_train_data.index)
+    raw_test_data = load_data("testing.csv")
+    raw_data = pd.concat([raw_train_data, raw_test_data], axis=0)
+    raw_data = data_trans(raw_data)
     scaler = StandardScaler()
-    # train_data = scaler.fit_transform(train_data)
-    # print(scaled_data)
+    raw_data = scaler.fit_transform(raw_data)
+    g_truth = load_g_truth("g_truth.txt")
+    x_data, y_data = extract_seqX_outcomeY(raw_data, g_truth, 180, 180)
+    x_train, y_train, x_test, y_test = split_train_test_set(x_data, y_data, 20)
     
-    x_train, _ = extract_seqX_outcomeY(train_data, window_size=50, offset=50)
-
-    y_train = load_g_truth("output.txt")
-    y_train = y_train[50:]
-    model = LSTM()
+    model = Model()
     model.train(x_train, y_train)
-
     # ================ Prediction stage ================
-    temp = x_train[len(x_train)-1]
-    temp = temp[2:]
-    print(temp)
-    temp = np.append(temp, [[153.65, 154.41, 153.08, 153.97]], axis=0)
-    temp = np.append(temp, [[154.4, 155.02, 152.91, 154.76]],  axis=0)
-    print(len(temp))
-    # exit()
-    # x_test = x_train[-1,:,:]
-    model.predict(temp)
-    # print(len(x_test))
+    model.predict(x_test)
 
     
 
