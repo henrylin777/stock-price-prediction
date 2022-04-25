@@ -1,4 +1,4 @@
-# auto-stock-trader
+# Stock-trader
 Automatic stock trader using RNN
 
 利用 RNN 分析股票資料，並預測未來股價趨勢，再根據RNN所預測的未來趨勢與目前持有的股票來決定進行哪一種操作。
