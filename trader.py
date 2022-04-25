@@ -124,7 +124,7 @@ def main(training, testing, output):
     profit = model.train(x_train, y_train, x_test, y_test, raw_test_data)
     print(f"Round 1 | Best Profit: {profit}")
 
-    for i in range(2, 5):
+    for i in range(2, 10):
         model = Model(input_dim, profit)
         profit = model.train(x_train, y_train, x_test, y_test, raw_test_data)
         print(f"Round {i} | Best Profit: {profit}")
